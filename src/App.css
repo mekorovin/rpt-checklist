@@ -1,184 +1,615 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
+:root {
+  --ink: #1a1818;
+  --ink-2: #252120;
+  --accent: #d27d46;
+  --accent-2: #e8a870;
+  --accent-dark: #be6b37;
+  --paper: #f7f4f1;
+  --line: #ede6de;
+  --muted: #6b6560;
+  --label: #4b463f;
+  --field-border: #ddd5cc;
+  --soft: #faf7f4;
+  --tint: #f7efe7;
+  --ok-bg: rgba(122, 168, 116, 0.16);
+  --ok-border: #6a9a63;
+  --ok-text: #3f6a3a;
+  --bad-bg: rgba(200, 92, 76, 0.13);
+  --bad-border: #c25c4c;
+  --bad-text: #9a3a2c;
+}
+
+.page {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  padding: 32px 16px 64px;
+  box-sizing: border-box;
+}
+
+.shell {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------- Шапка ---------- */
+
+.header {
+  background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 32px 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.brand-logo img {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.brand-name {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
 }
 
-.hero {
+.header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.header p {
+  margin: 10px 0 0;
+  color: #b8b3ae;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 480px;
+}
+
+.header-mark {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* ---------- Прогресс ---------- */
+
+.progress {
+  background: #fff;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+.progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progress-head span:first-child {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.progress-head span:last-child {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.progress-track {
+  height: 6px;
+  background: #f0eae3;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.4s ease;
+}
+
+/* ---------- Форма ---------- */
+
+.form {
+  background: #fff;
+  padding: 28px 32px 36px;
+  border-radius: 0 0 16px 16px;
+  box-shadow:
+    0 1px 3px rgba(26, 24, 24, 0.05),
+    0 16px 40px rgba(26, 24, 24, 0.05);
+}
+
+.panel {
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 20px;
+  background: #fbf9f7;
 }
 
-#center {
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)),
+    url('/assets/fon.jpg') center / cover;
+  filter: contrast(1.1) saturate(1.15);
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Блок «Качество выполненных работ»: инфографика видна сквозь блок.
+ * Без blur — картинка остаётся чёткой, читаемость держат сами карточки оценок.
+ */
+.panel--quality {
+  background: #fff;
+  padding: 24px 20px;
+}
+
+/* Фон блока рисует .quality-bg, общая подложка панели тут не нужна. */
+.panel--quality::before {
+  content: none;
+}
+
+/*
+ * Две картинки идут потоком одна за другой — вторая начинается там, где
+ * закончилась первая, наезда быть не может. Высота каждой задана aspect-ratio
+ * по исходным пропорциям, так что растяжения нет. Соседние края гасятся
+ * маской, проценты в ней считаются от самой картинки.
+ */
+.panel--quality .quality-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding-top: 80px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.quality-bg span {
+  display: block;
+  width: 120%;
+  margin-left: -10%;
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  opacity: 0.82;
+}
+
+.quality-bg-a {
+  aspect-ratio: 1536 / 2750;
+  background-image: url('/assets/quality.jpg');
+  -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+}
+
+.quality-bg-b {
+  aspect-ratio: 1536 / 2621;
+  background-image: url('/assets/quality-2.jpg');
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
+}
+
+/* Карточки полупрозрачные — инфографика читается сквозь них. */
+.panel--quality .rating {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.panel--quality .defect {
+  margin: 0 0 10px;
+  background: rgba(255, 255, 255, 0.66);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.panel--quality .choice,
+.panel--quality .pill {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.panel--quality .textarea {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+/* При вводе поле становится непрозрачным — текст важнее фона. */
+.panel--quality .textarea:not(.required):focus {
+  background: #fff;
+}
+
+.section-title {
   display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
+  align-items: center;
   gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+  margin-bottom: 6px;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.section-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
-.ticks {
-  position: relative;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.grid .full {
+  grid-column: 1 / -1;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--label);
+}
+
+.input,
+.textarea {
   width: 100%;
+  padding: 10px 12px;
+  border-radius: 7px;
+  border: 1.5px solid var(--field-border);
+  box-sizing: border-box;
+  margin-top: 5px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
+.input:focus,
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(210, 125, 70, 0.15);
+}
+
+.textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.textarea.required {
+  border-color: var(--accent);
+  background: #fff8f2;
+  margin-top: 10px;
+}
+
+/* ---------- Дефектная ведомость ---------- */
+
+.defect {
+  margin: 28px 0;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+/* Тот же стиль, что у заголовков пунктов оценки — блок стоит с ними в один ряд. */
+.defect > label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--field-border);
+  background: #fff;
+  color: var(--ink);
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.pill + .pill {
+  margin-left: 10px;
+}
+
+.pill:hover {
+  border-color: var(--accent);
+}
+
+.pill input {
+  accent-color: var(--accent);
+}
+
+.pill.on {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+/* ---------- Оценки ---------- */
+
+.section-note {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.rating {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.rating > label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.choices {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Поле комментария видно всегда — отступ не должен прыгать при выборе оценки. */
+.rating .textarea {
+  margin-top: 10px;
+}
+
+.choice {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--field-border);
+  background: #fff;
+  color: var(--label);
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.choice input {
+  display: none;
+}
+
+.choice:hover {
+  border-color: var(--accent);
+}
+
+/* Выбранный вариант непрозрачный — иначе он теряется на фоновой картинке. */
+.choice.on-ok {
+  background: #dcecd8;
+  border-color: var(--ok-border);
+  color: var(--ok-text);
+}
+
+.choice.on-bad {
+  background: #f7dad4;
+  border-color: var(--bad-border);
+  color: var(--bad-text);
+}
+
+/* ---------- Низ формы ---------- */
+
+.field {
+  margin-top: 24px;
+}
+
+.field + .field {
+  margin-top: 14px;
+}
+
+.submit {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 22px;
+  transition: background 0.2s;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.footer {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: #8a847e;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.footer strong {
+  color: var(--ink);
+}
+
+/* ---------- Экран благодарности ---------- */
+
+.done {
+  background: #fff;
+  border-radius: 16px;
+  padding: 56px 40px;
+  text-align: center;
+  border: 1px solid var(--line);
+  box-shadow:
+    0 1px 3px rgba(26, 24, 24, 0.06),
+    0 12px 32px rgba(26, 24, 24, 0.06);
+}
+
+.done-mark {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: var(--ok-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.done h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.done p {
+  margin: 0 auto;
+  max-width: 440px;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.done button {
+  margin-top: 28px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.done button:hover {
+  background: var(--ink-2);
+}
+
+/* ---------- Мобильные ---------- */
+
+@media (max-width: 640px) {
+  .page {
+    padding: 0 0 40px;
   }
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
+  .shell {
+    max-width: none;
   }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
+
+  .header {
+    border-radius: 0;
+    padding: 24px 18px 22px;
+  }
+
+  .header h1 {
+    font-size: 21px;
+  }
+
+  .header-mark {
+    display: none;
+  }
+
+  .progress {
+    padding: 12px 18px;
+  }
+
+  .form {
+    padding: 20px 18px 28px;
+    border-radius: 0;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .choice {
+    min-width: 100%;
+  }
+
+  .done {
+    border-radius: 0;
+    padding: 44px 22px;
   }
 }

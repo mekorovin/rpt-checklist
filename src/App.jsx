@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { Fragment, useState } from 'react';
+import './App.css';
 
 const RATING_CRITERIA = [
   { id: 'acceptance', label: 'Приемка в ремонт' },
   { id: 'overall', label: 'Качество ремонта (в целом)' },
-  { id: 'painting', label: 'Качество покраски' },
   { id: 'engine', label: 'Ремонт двигателя' },
   { id: 'hydro', label: 'Ремонт гидропередачи' },
   { id: 'transmission', label: 'Ремонт трансмиссии' },
@@ -12,27 +12,66 @@ const RATING_CRITERIA = [
   { id: 'electrics', label: 'Ремонт электрооборудования' },
   { id: 'pneumatics', label: 'Ремонт пневмооборудования' },
   { id: 'working_parts', label: 'Ремонт рабочих органов' },
+  { id: 'painting', label: 'Качество покраски' },
   { id: 'cabin', label: 'Ремонт кабины управления' },
 ];
 
-export default function ChecklistForm() {
-  const [formData, setFormData] = useState({
-    enterprise: '',
-    date: new Date().toISOString().split('T')[0],
-    location: '',
-    machineType: '',
-    machineNumber: '',
-    repairType: '',
-    repairTimeframe: '',
-    contactInfo: '',
-    defectResolved: 'Да',
-    defectComment: '',
-    ratings: {}, // { acceptance: { status: 'Удовлетворен' | 'Не удовлетворен', comment: '' } }
-    otherRemarks: '',
-    suggestions: '',
+// Блок про дефектную ведомость встаёт в список сразу после этого пункта.
+const DEFECT_BLOCK_AFTER = 'overall';
+
+const GOOGLE_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbxuynkMQXRmdeVGm1ggjcJNWn89BmrtUs3gD1-XmmbHbF670_demQYx7JkUcjYyh3PiNA/exec';
+
+const EMPTY_FORM = {
+  enterprise: '',
+  date: new Date().toISOString().split('T')[0],
+  location: '',
+  machineType: '',
+  machineNumber: '',
+  repairType: '',
+  repairTimeframe: '',
+  contactInfo: '',
+  defectResolved: '',
+  defectComment: '',
+  ratings: {}, // { acceptance: { status: 'Удовлетворен' | 'Не удовлетворен', comment: '' } }
+  otherRemarks: '',
+  suggestions: '',
+};
+
+// Доля заполненных обязательных полей — для полосы прогресса в шапке.
+function calcProgress(data) {
+  let total = 4; // machineType, machineNumber, repairType, defectResolved
+  let filled = 0;
+  if (data.machineType.trim()) filled++;
+  if (data.machineNumber.trim()) filled++;
+  if (data.repairType.trim()) filled++;
+  if (data.defectResolved) filled++;
+  if (data.defectResolved === 'Нет') {
+    total++;
+    if (data.defectComment.trim()) filled++;
+  }
+
+  RATING_CRITERIA.forEach((item) => {
+    const rating = data.ratings[item.id];
+    total++;
+    if (rating?.status) filled++;
+    if (rating?.status === 'Не удовлетворен') {
+      total++;
+      if ((rating.comment || '').trim()) filled++;
+    }
   });
 
+  return Math.round((filled / total) * 100);
+}
+
+export default function ChecklistForm() {
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  const setField = (key) => (e) =>
+    setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleRatingStatusChange = (id, status) => {
     setFormData((prev) => ({
@@ -54,177 +93,360 @@ export default function ChecklistForm() {
     }));
   };
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuynkMQXRmdeVGm1ggjcJNWn89BmrtUs3gD1-XmmbHbF670_demQYx7JkUcjYyh3PiNA/exec";
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  try {
-    // ВApps Script требует no-cors или отправку в формате plain text при прямой отправке JSON
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(formData),
-    });
+    try {
+      // Apps Script принимает JSON только как plain text и без CORS-заголовков.
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(formData),
+      });
 
-    setSubmitted(true);
-  } catch (err) {
-    console.error('Ошибка отправки:', err);
-    alert('Произошла ошибка при отправке формы. Попробуйте снова.');
-  }
-};
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Ошибка отправки:', err);
+      alert('Произошла ошибка при отправке формы. Попробуйте снова.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData(EMPTY_FORM);
+    setSubmitted(false);
+    window.scrollTo({ top: 0 });
+  };
 
   if (submitted) {
     return (
-      <div style={{ maxWidth: '650px', margin: '40px auto', padding: '30px', textAlign: 'center', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-        <h2 style={{ color: '#D27D46' }}>Спасибо за участие в опросе!</h2>
-        <p style={{ color: '#555', lineHeight: '1.6' }}>Ваше мнение необходимо нам для повышения качества ремонта.</p>
-        <button onClick={() => setSubmitted(false)} style={{ marginTop: '20px', background: '#1A1818', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}>Заполнить повторно</button>
+      <div className="page">
+        <div className="shell">
+          <div className="done">
+            <div className="done-mark">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 12.5L9.5 18L20 6"
+                  stroke="var(--ok-text)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <h2>Спасибо за оценку</h2>
+            <p>
+              Каждый отзыв помогает нам находить слабые места в ремонте и повышать качество на
+              следующем цикле. Мы разберём ваши замечания и учтём их в работе.
+            </p>
+            <button type="button" onClick={resetForm}>
+              Заполнить ещё раз
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const progress = calcProgress(formData);
+
   return (
-    <div style={{ maxWidth: '720px', margin: '20px auto', fontFamily: 'system-ui, -apple-system, sans-serif', backgroundColor: '#F8F9FA', color: '#1A1818', padding: '15px' }}>
-      {/* Шапка формы */}
-      <div style={{ backgroundColor: '#1A1818', borderTop: '6px solid #D27D46', padding: '24px', borderRadius: '10px 10px 0 0', color: '#FFF' }}>
-        <h1 style={{ margin: 0, fontSize: '22px', color: '#D27D46' }}>ООО «РПТ Групп»</h1>
-        <h2 style={{ margin: '8px 0 0 0', fontSize: '18px', fontWeight: '400' }}>Чек-лист оценки качества ремонта</h2>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ backgroundColor: '#FFF', padding: '24px', borderRadius: '0 0 10px 10px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-        
-        {/* Основная информация */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>Предприятие проведения ремонта</label>
-            <input type="text" style={inputStyle} value={formData.enterprise} onChange={(e) => setFormData({ ...formData, enterprise: e.target.value })} placeholder="Наименование предприятия" />
-          </div>
-          <div>
-            <label style={labelStyle}>Дата</label>
-            <input type="date" style={inputStyle} value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
-          </div>
-          <div>
-            <label style={labelStyle}>Город, станция</label>
-            <input type="text" style={inputStyle} value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-          <div>
-            <label style={labelStyle}>Тип машины / оборудования *</label>
-            <input type="text" required style={inputStyle} value={formData.machineType} onChange={(e) => setFormData({ ...formData, machineType: e.target.value })} />
-          </div>
-          <div>
-            <label style={labelStyle}>Номер машины / оборудования *</label>
-            <input type="text" required style={inputStyle} value={formData.machineNumber} onChange={(e) => setFormData({ ...formData, machineNumber: e.target.value })} />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
-          <div>
-            <label style={labelStyle}>Вид ремонта *</label>
-            <input type="text" required style={inputStyle} value={formData.repairType} onChange={(e) => setFormData({ ...formData, repairType: e.target.value })} />
-          </div>
-          <div>
-            <label style={labelStyle}>Сроки ремонта</label>
-            <input type="text" style={inputStyle} value={formData.repairTimeframe} onChange={(e) => setFormData({ ...formData, repairTimeframe: e.target.value })} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>ФИО, должность, номер телефона</label>
-            <input type="text" style={inputStyle} value={formData.contactInfo} onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })} />
-          </div>
-        </div>
-
-        <hr style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '25px 0' }} />
-
-        {/* Вопрос по дефектной ведомости */}
-        <div style={blockStyle}>
-          <label style={{ ...labelStyle, fontSize: '15px' }}>Устранены ли замечания по дефектной ведомости? *</label>
-          <div style={{ display: 'flex', gap: '20px', margin: '10px 0' }}>
-            {['Да', 'Нет'].map((val) => (
-              <label key={val} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <input type="radio" name="defectResolved" value={val} checked={formData.defectResolved === val} onChange={() => setFormData({ ...formData, defectResolved: val })} />
-                {val}
-              </label>
-            ))}
-          </div>
-          {formData.defectResolved === 'Нет' && (
-            <textarea
-              required
-              style={textareaRequiredStyle}
-              placeholder="Укажите, что именно не устранено *"
-              value={formData.defectComment}
-              onChange={(e) => setFormData({ ...formData, defectComment: e.target.value })}
-            />
-          )}
-        </div>
-
-        {/* Оценка критериев */}
-        <h3 style={{ color: '#D27D46', fontSize: '16px', marginTop: '25px', marginBottom: '15px' }}>Оценка выполнения работ</h3>
-
-        {RATING_CRITERIA.map((item) => {
-          const currentRating = formData.ratings[item.id]?.status || '';
-          return (
-            <div key={item.id} style={blockStyle}>
-              <label style={{ ...labelStyle, fontSize: '14px' }}>{item.label} *</label>
-              <div style={{ display: 'flex', gap: '20px', margin: '8px 0' }}>
-                {['Удовлетворен', 'Не удовлетворен'].map((val) => (
-                  <label key={val} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <input
-                      type="radio"
-                      required
-                      name={`rating_${item.id}`}
-                      value={val}
-                      checked={currentRating === val}
-                      onChange={() => handleRatingStatusChange(item.id, val)}
+    <div className="page">
+      <div className="shell">
+        <header className="header">
+          <div className="header-row">
+            <div>
+              <div className="brand">
+                {!logoFailed && (
+                  <span className="brand-logo">
+                    <img
+                      src="/assets/logo.png"
+                      alt="РПТ Групп"
+                      onError={() => setLogoFailed(true)}
                     />
-                    {val}
-                  </label>
-                ))}
+                  </span>
+                )}
+                <span className="brand-name">ООО «РПТ Групп»</span>
               </div>
-              {currentRating === 'Не удовлетворен' && (
-                <textarea
-                  required
-                  style={textareaRequiredStyle}
-                  placeholder={`Опишите замечания по пункту "${item.label}" *`}
-                  value={formData.ratings[item.id]?.comment || ''}
-                  onChange={(e) => handleRatingCommentChange(item.id, e.target.value)}
-                />
-              )}
+              <h1>Чек-лист оценки качества ремонта</h1>
+              <p>
+                Ваша оценка напрямую влияет на то, как мы улучшаем ремонт. Расскажите честно — мы
+                стремимся к совершенству на каждом этапе.
+              </p>
             </div>
-          );
-        })}
+            <svg
+              className="header-mark"
+              width="46"
+              height="46"
+              viewBox="0 0 46 46"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 32L16 20L24 27L41 8"
+                stroke="var(--accent)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M31 8H41V18"
+                stroke="var(--accent)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </header>
 
-        {/* Дополнительные поля */}
-        <div style={{ marginTop: '20px' }}>
-          <label style={labelStyle}>Другие замечания по качеству ремонта</label>
-          <textarea style={textareaStyle} value={formData.otherRemarks} onChange={(e) => setFormData({ ...formData, otherRemarks: e.target.value })} />
+        <div className="progress">
+          <div className="progress-head">
+            <span>Заполнено</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="progress-track">
+            <div className="progress-bar" style={{ width: `${progress}%` }} />
+          </div>
         </div>
 
-        <div style={{ marginTop: '15px' }}>
-          <label style={labelStyle}>Предложения по повышению качества ремонта</label>
-          <textarea style={textareaStyle} value={formData.suggestions} onChange={(e) => setFormData({ ...formData, suggestions: e.target.value })} />
-        </div>
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="panel">
+            <div className="grid">
+                <div>
+                  <label className="label" htmlFor="date">
+                    Дата
+                  </label>
+                  <input
+                    id="date"
+                    type="date"
+                    className="input"
+                    value={formData.date}
+                    onChange={setField('date')}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="location">
+                    Город, станция
+                  </label>
+                  <input
+                    id="location"
+                    type="text"
+                    className="input"
+                    value={formData.location}
+                    onChange={setField('location')}
+                  />
+                </div>
+                <div className="full">
+                  <label className="label" htmlFor="enterprise">
+                    Предприятие проведения ремонта
+                  </label>
+                  <input
+                    id="enterprise"
+                    type="text"
+                    className="input"
+                    placeholder="Наименование предприятия"
+                    value={formData.enterprise}
+                    onChange={setField('enterprise')}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="machineType">
+                    Тип машины / оборудования *
+                  </label>
+                  <input
+                    id="machineType"
+                    type="text"
+                    required
+                    className="input"
+                    value={formData.machineType}
+                    onChange={setField('machineType')}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="machineNumber">
+                    Номер машины / оборудования *
+                  </label>
+                  <input
+                    id="machineNumber"
+                    type="text"
+                    required
+                    className="input"
+                    value={formData.machineNumber}
+                    onChange={setField('machineNumber')}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="repairType">
+                    Вид ремонта *
+                  </label>
+                  <input
+                    id="repairType"
+                    type="text"
+                    required
+                    className="input"
+                    value={formData.repairType}
+                    onChange={setField('repairType')}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="repairTimeframe">
+                    Сроки ремонта
+                  </label>
+                  <input
+                    id="repairTimeframe"
+                    type="text"
+                    className="input"
+                    value={formData.repairTimeframe}
+                    onChange={setField('repairTimeframe')}
+                  />
+                </div>
+                <div className="full">
+                  <label className="label" htmlFor="contactInfo">
+                    ФИО, должность, номер телефона
+                  </label>
+                  <input
+                    id="contactInfo"
+                    type="text"
+                    className="input"
+                    value={formData.contactInfo}
+                    onChange={setField('contactInfo')}
+                  />
+                </div>
+            </div>
+          </div>
 
-        {/* Кнопка отправки */}
-        <button type="submit" style={{ width: '100%', backgroundColor: '#D27D46', color: '#FFF', padding: '14px', border: 'none', borderRadius: '6px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', marginTop: '25px' }}>
-          Отправить чек-лист
-        </button>
+          <div className="panel panel--quality">
+            <div className="quality-bg" aria-hidden="true">
+              <span className="quality-bg-a" />
+              <span className="quality-bg-b" />
+            </div>
+            <div className="section-title">
+              <h3>Качество выполненных работ</h3>
+            </div>
+            <p className="section-note">
+              Отметьте по каждому пункту — это основа для нашего плана улучшений.
+            </p>
 
-        {/* Контакты в подвале */}
-        <div style={{ marginTop: '20px', fontSize: '12px', color: '#666', textAlign: 'center', lineHeight: '1.5' }}>
-          Эл. почта: <strong>parshin@rptgrupp.ru</strong> | MAX / WhatsApp: <strong>8-913-700-07-55</strong>
-        </div>
-      </form>
+            {RATING_CRITERIA.map((item) => {
+              const rating = formData.ratings[item.id];
+              const isSatisfied = rating?.status === 'Удовлетворен';
+              const isUnsatisfied = rating?.status === 'Не удовлетворен';
+              return (
+                <Fragment key={item.id}>
+                <div className="rating">
+                  <label>{item.label} *</label>
+                  <div className="choices">
+                    <label className={`choice${isSatisfied ? ' on-ok' : ''}`}>
+                      <input
+                        type="radio"
+                        required
+                        name={`rating_${item.id}`}
+                        value="Удовлетворен"
+                        checked={isSatisfied}
+                        onChange={() => handleRatingStatusChange(item.id, 'Удовлетворен')}
+                      />
+                      ✓ Удовлетворён
+                    </label>
+                    <label className={`choice${isUnsatisfied ? ' on-bad' : ''}`}>
+                      <input
+                        type="radio"
+                        required
+                        name={`rating_${item.id}`}
+                        value="Не удовлетворен"
+                        checked={isUnsatisfied}
+                        onChange={() => handleRatingStatusChange(item.id, 'Не удовлетворен')}
+                      />
+                      ✕ Не удовлетворён
+                    </label>
+                  </div>
+                  <textarea
+                    required={isUnsatisfied}
+                    className={`textarea${isUnsatisfied ? ' required' : ''}`}
+                    placeholder={
+                      isUnsatisfied
+                        ? `Опишите замечания по пункту «${item.label}» *`
+                        : 'Комментарий по пункту'
+                    }
+                    value={rating?.comment || ''}
+                    onChange={(e) => handleRatingCommentChange(item.id, e.target.value)}
+                  />
+                </div>
+
+                {item.id === DEFECT_BLOCK_AFTER && (
+                  <div className="defect">
+                    <label>Устранены ли замечания по дефектной ведомости? *</label>
+                    {['Да', 'Нет'].map((val) => (
+                      <label
+                        key={val}
+                        className={`pill${formData.defectResolved === val ? ' on' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          required
+                          name="defectResolved"
+                          value={val}
+                          checked={formData.defectResolved === val}
+                          onChange={() =>
+                            setFormData((prev) => ({ ...prev, defectResolved: val }))
+                          }
+                        />
+                        {val}
+                      </label>
+                    ))}
+                    {formData.defectResolved === 'Нет' && (
+                      <textarea
+                        required
+                        className="textarea required"
+                        placeholder="Укажите, что именно не устранено *"
+                        value={formData.defectComment}
+                        onChange={setField('defectComment')}
+                      />
+                    )}
+                  </div>
+                )}
+                </Fragment>
+              );
+            })}
+          </div>
+
+          <div className="field">
+            <label className="label" htmlFor="otherRemarks">
+              Другие замечания по качеству ремонта
+            </label>
+            <textarea
+              id="otherRemarks"
+              className="textarea"
+              value={formData.otherRemarks}
+              onChange={setField('otherRemarks')}
+            />
+          </div>
+
+          <div className="field">
+            <label className="label" htmlFor="suggestions">
+              Предложения по повышению качества ремонта
+            </label>
+            <textarea
+              id="suggestions"
+              className="textarea"
+              value={formData.suggestions}
+              onChange={setField('suggestions')}
+            />
+          </div>
+
+          <button type="submit" className="submit" disabled={sending}>
+            {sending ? 'Отправляем…' : 'Отправить чек-лист'}
+          </button>
+
+          <div className="footer">
+            Эл. почта: <strong>parshin@rptgrupp.ru</strong> &nbsp;|&nbsp; MAX / WhatsApp:{' '}
+            <strong>8-913-700-07-55</strong>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
-
-// Стили
-const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CCC', boxSizing: 'border-box', marginTop: '4px' };
-const labelStyle = { display: 'block', fontWeight: '600', fontSize: '13px', color: '#333' };
-const blockStyle = { background: '#F8F9FA', padding: '12px 15px', borderRadius: '6px', marginBottom: '12px', borderLeft: '3px solid #D27D46' };
-const textareaStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CCC', minHeight: '60px', boxSizing: 'border-box', marginTop: '4px' };
-const textareaRequiredStyle = { ...textareaStyle, border: '1px solid #D27D46', backgroundColor: '#FFF5F0' };
