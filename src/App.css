@@ -200,10 +200,10 @@
 }
 
 /*
- * Две картинки идут потоком одна за другой — вторая начинается там, где
- * закончилась первая, наезда быть не может. Высота каждой задана aspect-ratio
- * по исходным пропорциям, так что растяжения нет. Соседние края гасятся
- * маской, проценты в ней считаются от самой картинки.
+ * Фон идёт от заголовка блока до кнопки отправки: инфографика сверху,
+ * ниже две фотографии цеха. Всё лежит в одной флекс-колонке, поэтому
+ * наезда быть не может. Края гасятся маской — проценты в ней считаются
+ * от самой картинки, поэтому гаснет именно её край.
  */
 .panel--quality .quality-bg {
   position: absolute;
@@ -212,6 +212,8 @@
   padding-top: 80px;
   overflow: hidden;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
 }
 
 .quality-bg span {
@@ -219,23 +221,52 @@
   width: 120%;
   margin-left: -10%;
   background-position: center;
-  background-size: 100% 100%;
   background-repeat: no-repeat;
-  opacity: 0.82;
 }
 
 .quality-bg-a {
+  flex: none;
   aspect-ratio: 1536 / 2750;
   background-image: url('/assets/quality.jpg');
+  background-size: 100% 100%;
+  opacity: 0.82;
   -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
 }
 
+/*
+ * Фотографии делят между собой всю высоту, оставшуюся под инфографикой,
+ * — на длинной форме телефона белых прогалин не остаётся. Кадрируются
+ * через cover, поэтому пропорции целые при любой высоте. Прозрачность ниже,
+ * чем у инфографики: снимки тёмные, под ними должен читаться текст.
+ */
+.quality-bg-photo {
+  flex: 1 1 0;
+  min-height: 200px;
+  background-size: cover;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 18%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 18%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
 .quality-bg-b {
-  aspect-ratio: 1536 / 2621;
-  background-image: url('/assets/quality-2.jpg');
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
+  background-image: url('/assets/shop-1.jpg');
+}
+
+.quality-bg-c {
+  background-image: url('/assets/shop-2.jpg');
 }
 
 /* Карточки полупрозрачные — инфографика читается сквозь них. */
@@ -248,6 +279,15 @@
   margin: 0 0 10px;
   background: rgba(255, 255, 255, 0.66);
   border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* «Другие замечания» и «Предложения» лежат на фоне — им нужна та же
+   подложка, что и карточкам оценок, иначе подписи теряются на фотографии. */
+.panel--quality .field {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 10px;
+  padding: 14px 16px;
 }
 
 .panel--quality .choice,

@@ -322,7 +322,8 @@ export default function ChecklistForm() {
           <div className="panel panel--quality">
             <div className="quality-bg" aria-hidden="true">
               <span className="quality-bg-a" />
-              <span className="quality-bg-b" />
+              <span className="quality-bg-photo quality-bg-b" />
+              <span className="quality-bg-photo quality-bg-c" />
             </div>
             <div className="section-title">
               <h3>Качество выполненных работ</h3>
@@ -411,30 +412,30 @@ export default function ChecklistForm() {
                 </Fragment>
               );
             })}
-          </div>
 
-          <div className="field">
-            <label className="label" htmlFor="otherRemarks">
-              Другие замечания по качеству ремонта
-            </label>
-            <textarea
-              id="otherRemarks"
-              className="textarea"
-              value={formData.otherRemarks}
-              onChange={setField('otherRemarks')}
-            />
-          </div>
+            <div className="field">
+              <label className="label" htmlFor="otherRemarks">
+                Другие замечания по качеству ремонта
+              </label>
+              <textarea
+                id="otherRemarks"
+                className="textarea"
+                value={formData.otherRemarks}
+                onChange={setField('otherRemarks')}
+              />
+            </div>
 
-          <div className="field">
-            <label className="label" htmlFor="suggestions">
-              Предложения по повышению качества ремонта
-            </label>
-            <textarea
-              id="suggestions"
-              className="textarea"
-              value={formData.suggestions}
-              onChange={setField('suggestions')}
-            />
+            <div className="field">
+              <label className="label" htmlFor="suggestions">
+                Предложения по повышению качества ремонта
+              </label>
+              <textarea
+                id="suggestions"
+                className="textarea"
+                value={formData.suggestions}
+                onChange={setField('suggestions')}
+              />
+            </div>
           </div>
 
           <button type="submit" className="submit" disabled={sending}>
